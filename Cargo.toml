@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 symex = { git = "https://github.com/ivajon/symex.git", branch = "trivial_stack_size" }
 clap = { version = "4.5.26", features = ["derive"] }
+regex = "1.11.1"

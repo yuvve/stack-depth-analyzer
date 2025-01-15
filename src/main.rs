@@ -1,5 +1,7 @@
+mod symex_adapter;
+
 use clap::Parser;
-use symex::run_elf;
+use symex_adapter::{run_v6, run_v7};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -7,6 +9,10 @@ struct Args {
     /// Path to the ELF file to analyze
     #[arg(short='f', long)]
     elf: String,
+
+    /// Architecture of the ELF file
+    #[arg(short='a', long, default_value = "v7")]
+    arch: String,
 
     /// Entry point to analyze
     #[arg(short='e', long)]
@@ -24,17 +30,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let entry_point = args.entry;
     let print = args.print;
 
-    let elf_results = run_elf::run_elf(&elf_path, &entry_point, print)?;
-
-    // Example of how to access the stack usage results
-    for result in elf_results {
-        let initial_sp = result.initial_sp;
-        let stack_hashet = result.stack_usage.unwrap();
-        let min_stack = stack_hashet.iter().min().unwrap();
-        let max_stack_depth = initial_sp - *min_stack;
-        println!("Initial SP for {}: 0x{:x}", entry_point, initial_sp);
-        println!("Lowest address in accessed by {}: 0x{:x}", entry_point, min_stack);
-        println!("Maximal stack depth for {}: {} bytes", entry_point, max_stack_depth);
+    match args.arch.as_str() {
+        "v6" => run_v6(&elf_path, &entry_point, print)?,
+        "v7" => run_v7(&elf_path, &entry_point, print)?,
+        _ => panic!("Unsupported architecture"),
     }
 
     Ok(())
