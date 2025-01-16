@@ -9,6 +9,7 @@ use gimli::{
 };
 use object::{Object, ObjectSection};
 use std::fs;
+use regex::Regex;
 
 pub trait ParseElf{
     fn get_entry_points(&self, elf_path: &str) -> Result<Vec<String>, String>;
@@ -22,10 +23,23 @@ impl ParseElf for ParsedElf {
     }
 }
 
+// Hacky solution to remove main entry points
+const KNOWN_MAIN_ENTRY_POINTS: [&str; 3] = [
+    "main",
+    "__cortex_m_rt_main",
+    "__cortex_m_rt_main_trampoline"
+];
+
 fn get_entry_points(elf_path: &str) -> Result<Vec<String>, String> {
     let crate_namespace = elf_path.split("/").last().unwrap().split(".").next().unwrap();
-    let entry_points = get_subprograms_in_namespace(elf_path, crate_namespace).unwrap();
+    let mut entry_points = get_subprograms_in_namespace(elf_path, crate_namespace).unwrap();
 
+    // Remove entry points matching known main entry points
+    for main_entry_point in KNOWN_MAIN_ENTRY_POINTS.iter() {
+        let re = Regex::new(&format!("^{}$", main_entry_point)).unwrap();
+        entry_points = entry_points.iter().filter(|entry_point| !re.is_match(entry_point)).map(|x| x.to_string()).collect();
+    }
+    
     Ok(entry_points)
 }
 
@@ -96,6 +110,13 @@ fn search_children(debug_str: DebugStr<gimli::EndianSlice<'_, RunTimeEndian>>, s
         if child_entry.tag() != DW_TAG_subprogram {
             continue;
         }
+
+        // Skip internal functions
+        match child_entry.attr_value(gimli::DW_AT_external) {
+            Ok(Some(AttributeValue::Flag(true))) => (),
+            _ => continue,
+        }
+
         if let Some(name_attr) = child_entry.attr(DW_AT_name).unwrap() {
             if let AttributeValue::DebugStrRef(str_ref) = name_attr.value() {
                 let function_name = debug_str.get_str(str_ref).unwrap().to_string_lossy();
@@ -125,9 +146,10 @@ mod tests {
             ElfTestData {
                 path: test_file_path.to_str().unwrap().to_string(), 
                 entries: vec![
-                    "main",
                     "function1",
                     "function2",
+                    "function3",
+                    "function4"
                 ],
             },
         ]

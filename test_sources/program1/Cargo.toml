@@ -3,8 +3,18 @@ name = "program1"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-
 [profile.dev]
 debug = true
 opt-level = 0
+
+[dependencies]
+panic-halt = "1.0.0"
+cortex-m = { version = "0.7.7", features = [
+    "inline-asm",
+    "critical-section-single-core",
+] }
+cortex-m-rt = "0.7.5"
+
+[dependencies.nrf52840-hal]
+features = ["rt"]
+version = "0.18.0"
