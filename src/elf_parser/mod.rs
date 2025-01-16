@@ -140,16 +140,25 @@ mod tests {
     fn get_test_data() -> Vec<ElfTestData> {
         let root_path = env!("CARGO_MANIFEST_DIR").to_owned();
         let assets_path = PathBuf::from(root_path).join("tests").join("assets");
-        let test_file_path = assets_path.join("program1");
     
         vec![
             ElfTestData {
-                path: test_file_path.to_str().unwrap().to_string(), 
+                path: assets_path.join("program1").to_str().unwrap().to_string(), 
                 entries: vec![
                     "function1",
                     "function2",
                     "function3",
                     "function4"
+                ],
+            },
+            ElfTestData {
+                path: assets_path.join("ex4").to_str().unwrap().to_string(), 
+                entries: vec![
+                    "equal_formula_rec",
+                    "equal_iter_rec",
+                    "complexity_sum_recursive",
+                    "complexity_sum_iterative",
+                    "complexity_sum_formula"
                 ],
             },
         ]
