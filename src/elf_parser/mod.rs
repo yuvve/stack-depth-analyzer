@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_function_entry_points() {
+    fn test_get_entry_points() {
         let test_elf = get_test_data();
         for elf in test_elf {
             let entries = get_entry_points(&elf.path);

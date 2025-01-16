@@ -79,7 +79,7 @@ mod tests {
     }
 
     #[test]
-    fn test_entry_points_analysis() {
+    fn test_analyze_entry_point() {
         let test_elf = get_test_data();
         for elf in test_elf {
             for entry in elf.entries_with_depth {
